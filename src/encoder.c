@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     size_t input_size = 0;
     ssize_t line_length;
 
-    printf("Message to encode: ");
+    printf("Message to Encode: ");
     line_length = getline(&input, &input_size, stdin);
 
     if (line_length < 0) {
@@ -34,49 +34,92 @@ int main(int argc, char *argv[]) {
         input[line_length - 1] = '\0';
     }
 
-    const unsigned int message_indicator = 2533649507;
-    const unsigned int message_length = (unsigned int)strlen(input);
+    // Enforces a limit of 2^24 characters
+    if (strlen(input) > 16777216) {
+        printf("Message is greater than 16,777,216 characters\n");
+        free(input);
+        return 1;
+    }
 
-    size_t message_indicator_bit_size = sizeof(message_indicator) * 8;
-    size_t message_length_bit_size = sizeof(message_length) * 8;
-    size_t char_bit_size = sizeof(char) * 8;
+    // Random unsigned int that acts as a message signature
+    const unsigned int message_signature = 2533649507;
+    // Truncates message_length to 3 bytes
+    const unsigned int message_length = strlen(input) & 0xFFFFFF;
 
-    // Array large enough for message indicator, message length, and message split into 2 bit elements (crumbs)
-    unsigned char message_crumbs[(message_indicator_bit_size / 2) + (message_length_bit_size / 2) + ((char_bit_size * strlen(input)) / 2)];
+    // Enforces standard sizes for each segment
+    const size_t message_signature_bit_size = 32;
+    const size_t message_length_bit_size = 24;
+    const size_t message_length_checksum_bit_size = 8;
+    const size_t char_bit_size = 8;
+    const size_t message_checksum_bit_size = 32;
 
-    // Adds message_indicator crumbs to message_crumbs
-    for (size_t i = 0; i < message_indicator_bit_size; i += 2) {
-        message_crumbs[i / 2] = (message_indicator >> ((message_indicator_bit_size - 2) - i)) & 0b11;
+    // Array large enough for message_signature, message_length, message_length_checksum, message, and message_checksum split into 2 bit elements (crumbs)
+    unsigned char message_crumbs[(message_signature_bit_size / 2) + (message_length_bit_size / 2) + (message_length_checksum_bit_size / 2) + ((char_bit_size * strlen(input)) / 2) + (message_checksum_bit_size / 2)];
+
+    // Adds message_signature crumbs to message_crumbs
+    for (size_t i = 0; i < message_signature_bit_size; i += 2) {
+        message_crumbs[i / 2] = (message_signature >> ((message_signature_bit_size - 2) - i)) & 0b11;
     }
 
     // Adds message_length crumbs to message_crumbs
-    size_t message_length_index = message_indicator_bit_size / 2;
+    size_t message_length_index = message_signature_bit_size / 2;
+    unsigned char message_length_checksum = 0;
     for (size_t i = 0; i < message_length_bit_size; i += 2) {
-        message_crumbs[message_length_index + (i / 2)] = (message_length >> ((message_length_bit_size - 2) - i)) & 0b11;
+        unsigned char crumb = (message_length >> ((message_length_bit_size - 2) - i)) & 0b11;
+        message_crumbs[message_length_index + (i / 2)] = crumb;
+        message_length_checksum += crumb;
+    }
+
+    // Adds message_length_checksum crumbs to message_crumbs
+    size_t message_length_checksum_index = message_length_index + (message_length_bit_size / 2);
+    for (size_t i = 0; i < message_length_checksum_bit_size; i += 2) {
+        unsigned char crumb = (message_length_checksum >> ((message_length_checksum_bit_size - 2) - i)) & 0b11;
+        message_crumbs[message_length_checksum_index + (i / 2)] = crumb;
     }
 
     // Adds input crumbs to message_crumbs
-    size_t message_index = message_length_index + (message_length_bit_size / 2);
+    size_t message_index = message_length_checksum_index + (message_length_checksum_bit_size / 2);
+    unsigned int message_checksum = 0;
     for (size_t i = 0; i < strlen(input); i++) {
         char curr_char = input[i];
         for (size_t j = 0; j < char_bit_size; j += 2) {
-            message_crumbs[message_index + (((i * char_bit_size) + j) / 2)] = (curr_char >> ((char_bit_size - 2) - j)) & 0b11;
+            unsigned char crumb = (curr_char >> ((char_bit_size - 2) - j)) & 0b11;
+            message_crumbs[message_index + (((i * char_bit_size) + j) / 2)] = crumb;
+            message_checksum += crumb;
         }
     }
 
-    for (size_t i = 0; i < message_indicator_bit_size / 2; i++) {
+    // Adds message_checksum crumbs to message_crumbs
+    size_t message_checksum_index = message_index + ((char_bit_size * strlen(input)) / 2);
+    for (size_t i = 0; i < message_checksum_bit_size; i += 2) {
+        unsigned char crumb = (message_checksum >> ((message_checksum_bit_size - 2) - i)) & 0b11;
+        message_crumbs[message_checksum_index + (i / 2)] = crumb;
+    }
+
+    printf("Message Signature: ");
+    for (size_t i = 0; i < message_signature_bit_size / 2; i++) {
         printf("%u", (message_crumbs[i] >> 1) & 0b1);
         printf("%u", message_crumbs[i] & 0b1);
     }
-    printf("\n");
+    printf("\nMessage Length: ");
     for (size_t i = 0; i < message_length_bit_size / 2; i++) {
         printf("%u", (message_crumbs[message_length_index + i] >> 1) & 0b1);
         printf("%u", message_crumbs[message_length_index + i] & 0b1);
     }
-    printf("\n");
+    printf("\nMessage Length Checksum: ");
+    for (size_t i = 0; i < message_length_checksum_bit_size / 2; i++) {
+        printf("%u", (message_crumbs[message_length_checksum_index + i] >> 1) & 0b1);
+        printf("%u", message_crumbs[message_length_checksum_index + i] & 0b1);
+    }
+    printf("\nMessage: ");
     for (size_t i = 0; i < char_bit_size * strlen(input) / 2; i++) {
         printf("%u", (message_crumbs[message_index + i] >> 1) & 0b1);
         printf("%u", message_crumbs[message_index + i] & 0b1);
+    }
+    printf("\nMessage Checksum: ");
+    for (size_t i = 0; i < message_checksum_bit_size / 2; i++) {
+        printf("%u", (message_crumbs[message_checksum_index + i] >> 1) & 0b1);
+        printf("%u", message_crumbs[message_checksum_index + i] & 0b1);
     }
     printf("\n");
 
@@ -95,7 +138,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Embed in image
+    if ((sizeof(message_crumbs) / sizeof(unsigned char)) / 4 > width * height) {
+        printf("Message is too long for specified image\n");
+        free(image);
+        return 1;
+    }
 
     // Encodes raw pixels to png
     error = lodepng_encode32_file(argc == 3 ? argv[2] : "output.png", image, width, height);
