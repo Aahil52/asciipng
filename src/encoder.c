@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     size_t input_size = 0;
     ssize_t line_length;
 
-    printf("Message to Encode: ");
+    printf("Message to encode: ");
     line_length = getline(&input, &input_size, stdin);
 
     if (line_length < 0) {

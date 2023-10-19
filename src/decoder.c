@@ -39,12 +39,14 @@ int main(int argc, char *argv[]) {
     const size_t char_bit_size = 8;
     const size_t message_checksum_bit_size = 32;
 
+    // Attempts to decode message signature
     unsigned int decoded_message_signature = 0;
     for (size_t i = 0; i < message_signature_bit_size; i += 2) {
         unsigned char crumb = image[i / 2] & 0b11;
         decoded_message_signature |= (crumb << ((message_signature_bit_size - 2) - i));
     }
 
+    // Checks if decoded_message_signature matches defined_message_signature
     if (decoded_message_signature == defined_message_signature) {
         printf("Message signature found\n");
     } else {
@@ -53,6 +55,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Attempts to decode message length and calculates expected message length checksum
     unsigned int decoded_message_length = 0;
     unsigned char expected_message_length_checksum = 0;
     size_t message_length_index = message_signature_bit_size / 2;
@@ -62,6 +65,7 @@ int main(int argc, char *argv[]) {
         expected_message_length_checksum += crumb;
     }
 
+    // Attempts to decode message length checksum
     unsigned char decoded_message_length_checksum = 0;
     size_t message_length_checksum_index = message_length_index + (message_length_bit_size / 2);
     for (size_t i = 0; i < message_length_checksum_bit_size; i += 2) {
@@ -69,6 +73,7 @@ int main(int argc, char *argv[]) {
         decoded_message_length_checksum |= (crumb << ((message_length_checksum_bit_size - 2) - i));
     }
 
+    // Checks if decoded_message_length_checksum matches expected_message_lengh_checksum
     if (decoded_message_length_checksum == expected_message_length_checksum) {
         printf("Message length successfully decoded (%u)\n", decoded_message_length);
     } else {
@@ -77,9 +82,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Creates a new string of the correct size
     char decoded_message[decoded_message_length + 1];
     decoded_message[decoded_message_length] = '\0';
 
+    // Attempts to decode message and calculates expected message checksum
     unsigned int expected_message_checksum = 0;
     size_t message_index = message_length_checksum_index + (message_length_checksum_bit_size / 2);
     for (size_t i = 0; i < decoded_message_length; i++) {
@@ -92,6 +99,7 @@ int main(int argc, char *argv[]) {
         decoded_message[i] = decoded_char;
     }
 
+    // Attempts to decode message checksum
     unsigned int decoded_message_checksum = 0;
     size_t message_checksum_index = message_index + ((char_bit_size * decoded_message_length) / 2);
     for (size_t i = 0; i < message_checksum_bit_size; i += 2) {
@@ -99,6 +107,7 @@ int main(int argc, char *argv[]) {
         decoded_message_checksum |= (crumb << ((message_checksum_bit_size - 2) - i));
     }
 
+    // Checks if decoded_message_checksum matches expected_message_checksum
     if (decoded_message_checksum == expected_message_checksum) {
         printf("Message successfully decoded:\n%s\n", decoded_message);
     } else {
