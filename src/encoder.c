@@ -34,24 +34,51 @@ int main(int argc, char *argv[]) {
         input[line_length - 1] = '\0';
     }
 
-    unsigned char input_bits[strlen(input) * 8];
+    const unsigned int message_indicator = 2533649507;
+    const unsigned int message_length = (unsigned int)strlen(input);
 
-    // Iterates through each char in input
-    for (int i = 0; i < strlen(input); i++) {
+    size_t message_indicator_bit_size = sizeof(message_indicator) * 8;
+    size_t message_length_bit_size = sizeof(message_length) * 8;
+    size_t char_bit_size = sizeof(char) * 8;
+
+    // Array large enough for message indicator, message length, and message split into 2 bit elements (crumbs)
+    unsigned char message_crumbs[(message_indicator_bit_size / 2) + (message_length_bit_size / 2) + ((char_bit_size * strlen(input)) / 2)];
+
+    // Adds message_indicator crumbs to message_crumbs
+    for (size_t i = 0; i < message_indicator_bit_size; i += 2) {
+        message_crumbs[i / 2] = (message_indicator >> ((message_indicator_bit_size - 2) - i)) & 0b11;
+    }
+
+    // Adds message_length crumbs to message_crumbs
+    size_t message_length_index = message_indicator_bit_size / 2;
+    for (size_t i = 0; i < message_length_bit_size; i += 2) {
+        message_crumbs[message_length_index + (i / 2)] = (message_length >> ((message_length_bit_size - 2) - i)) & 0b11;
+    }
+
+    // Adds input crumbs to message_crumbs
+    size_t message_index = message_length_index + (message_length_bit_size / 2);
+    for (size_t i = 0; i < strlen(input); i++) {
         char curr_char = input[i];
-        // Iterates through each bit in curr_char and adds it to the correct index in input_bits
-        for (int j = 0; j < 8; j++) {
-            unsigned char bit = (curr_char >> (7 - j)) & 0x01;
-            input_bits[(i * 8) + j] = bit;
+        for (size_t j = 0; j < char_bit_size; j += 2) {
+            message_crumbs[message_index + (((i * char_bit_size) + j) / 2)] = (curr_char >> ((char_bit_size - 2) - j)) & 0b11;
         }
     }
 
-    for (int i = 0; i < strlen(input); i++) {
-        for (int j = 0; j < 8; j++) {
-            printf("%i", input_bits[(i * 8) + j]);
-        }
-        printf("\n");
+    for (size_t i = 0; i < message_indicator_bit_size / 2; i++) {
+        printf("%u", (message_crumbs[i] >> 1) & 0b1);
+        printf("%u", message_crumbs[i] & 0b1);
     }
+    printf("\n");
+    for (size_t i = 0; i < message_length_bit_size / 2; i++) {
+        printf("%u", (message_crumbs[message_length_index + i] >> 1) & 0b1);
+        printf("%u", message_crumbs[message_length_index + i] & 0b1);
+    }
+    printf("\n");
+    for (size_t i = 0; i < char_bit_size * strlen(input) / 2; i++) {
+        printf("%u", (message_crumbs[message_index + i] >> 1) & 0b1);
+        printf("%u", message_crumbs[message_index + i] & 0b1);
+    }
+    printf("\n");
 
     free(input);
 
