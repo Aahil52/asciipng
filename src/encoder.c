@@ -34,14 +34,14 @@ int main(int argc, char *argv[]) {
         input[line_length - 1] = '\0';
     }
 
-    int input_bits[strlen(input) * 8];
+    unsigned char input_bits[strlen(input) * 8];
 
     // Iterates through each char in input
     for (int i = 0; i < strlen(input); i++) {
         char curr_char = input[i];
         // Iterates through each bit in curr_char and adds it to the correct index in input_bits
         for (int j = 0; j < 8; j++) {
-            int bit = (curr_char >> (7 - j)) & 0x01;
+            unsigned char bit = (curr_char >> (7 - j)) & 0x01;
             input_bits[(i * 8) + j] = bit;
         }
     }
