@@ -138,10 +138,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Enforces message size to fit within image
     if ((sizeof(message_crumbs) / sizeof(unsigned char)) / 4 > width * height) {
         printf("Message is too long for specified image\n");
         free(image);
         return 1;
+    }
+
+    // Embed message_crumbs in image
+    for (size_t i = 0; i < (sizeof(message_crumbs) / sizeof(unsigned char)); i++) {
+        unsigned char new_val = image[i] & 0b11111100;
+        new_val |= message_crumbs[i];
+        image[i] = new_val;
     }
 
     // Encodes raw pixels to png
