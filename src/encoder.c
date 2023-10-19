@@ -96,33 +96,6 @@ int main(int argc, char *argv[]) {
         message_crumbs[message_checksum_index + (i / 2)] = crumb;
     }
 
-    printf("Message Signature: ");
-    for (size_t i = 0; i < message_signature_bit_size / 2; i++) {
-        printf("%u", (message_crumbs[i] >> 1) & 0b1);
-        printf("%u", message_crumbs[i] & 0b1);
-    }
-    printf("\nMessage Length: ");
-    for (size_t i = 0; i < message_length_bit_size / 2; i++) {
-        printf("%u", (message_crumbs[message_length_index + i] >> 1) & 0b1);
-        printf("%u", message_crumbs[message_length_index + i] & 0b1);
-    }
-    printf("\nMessage Length Checksum: ");
-    for (size_t i = 0; i < message_length_checksum_bit_size / 2; i++) {
-        printf("%u", (message_crumbs[message_length_checksum_index + i] >> 1) & 0b1);
-        printf("%u", message_crumbs[message_length_checksum_index + i] & 0b1);
-    }
-    printf("\nMessage: ");
-    for (size_t i = 0; i < char_bit_size * strlen(input) / 2; i++) {
-        printf("%u", (message_crumbs[message_index + i] >> 1) & 0b1);
-        printf("%u", message_crumbs[message_index + i] & 0b1);
-    }
-    printf("\nMessage Checksum: ");
-    for (size_t i = 0; i < message_checksum_bit_size / 2; i++) {
-        printf("%u", (message_crumbs[message_checksum_index + i] >> 1) & 0b1);
-        printf("%u", message_crumbs[message_checksum_index + i] & 0b1);
-    }
-    printf("\n");
-
     free(input);
 
     unsigned error;
