@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     // Random unsigned int that acts as a message signature
     const unsigned int message_signature = 2533649507;
     // Truncates message_length to 3 bytes
-    const unsigned int message_length = strlen(input) & 0xFFFFFF;
+    const unsigned int message_length = (unsigned int)strlen(input);
 
     // Enforces standard sizes for each segment
     const size_t message_signature_bit_size = 32;
@@ -162,4 +162,5 @@ int main(int argc, char *argv[]) {
     }
 
     free(image);
+    return 0;
 }
