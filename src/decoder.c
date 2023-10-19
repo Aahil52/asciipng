@@ -47,9 +47,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Checks if decoded_message_signature matches defined_message_signature
-    if (decoded_message_signature == defined_message_signature) {
-        printf("Message signature found\n");
-    } else {
+    if (decoded_message_signature != defined_message_signature) {
         printf("Message signature not present: no message encoded\n");
         free(image);
         return 1;
@@ -74,9 +72,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Checks if decoded_message_length_checksum matches expected_message_lengh_checksum
-    if (decoded_message_length_checksum == expected_message_length_checksum) {
-        printf("Message length successfully decoded (%u)\n", decoded_message_length);
-    } else {
+    if (decoded_message_length_checksum != expected_message_length_checksum) {
         printf("Error decoding message length: checksum invalid\n");
         free(image);
         return 1;
@@ -108,11 +104,12 @@ int main(int argc, char *argv[]) {
     }
 
     // Checks if decoded_message_checksum matches expected_message_checksum
-    if (decoded_message_checksum == expected_message_checksum) {
-        printf("Message successfully decoded:\n%s\n", decoded_message);
-    } else {
+    if (decoded_message_checksum != expected_message_checksum) {
         printf("Error decoding message: checksum invalid\n");
     }
+
+    // Prints decoded message
+    printf("Decoded message: %s\n", decoded_message);
 
     free(image);
     return 0;
