@@ -91,9 +91,8 @@ int main(int argc, char *argv[]) {
         }
         decoded_message[i] = decoded_char;
     }
-    printf("%s\n%u\n", decoded_message, expected_message_checksum);
 
-    unsigned char decoded_message_checksum = 0;
+    unsigned int decoded_message_checksum = 0;
     size_t message_checksum_index = message_index + ((char_bit_size * decoded_message_length) / 2);
     for (size_t i = 0; i < message_checksum_bit_size; i += 2) {
         unsigned char crumb = image[message_checksum_index + (i / 2)] & 0b11;
@@ -103,7 +102,7 @@ int main(int argc, char *argv[]) {
     if (decoded_message_checksum == expected_message_checksum) {
         printf("Message successfully decoded:\n%s\n", decoded_message);
     } else {
-        printf("Error decoding message: checksum invalid\n%u\n", decoded_message_checksum);
+        printf("Error decoding message: checksum invalid\n");
     }
 
     free(image);
