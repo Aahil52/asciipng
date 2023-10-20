@@ -6,7 +6,7 @@
 int main(int argc, char *argv[]) {
     // Checks for proper usage
     if (argc != 2) {
-        printf("Usage: %s input.png\n", argv[0]);
+        printf("Usage: %s <input.png>\n", argv[0]);
         return 1;
     }
 
