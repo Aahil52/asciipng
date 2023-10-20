@@ -72,6 +72,10 @@ This project uses LodePNG to decode a PNG file into raw pixel data and to encode
 
 LodePNG was chosen for its simplicity and ease of use. LodePNG is lightweight and has no external dependencies, making it easy to incorporate into the project. Additionally, both encoding and decoding can be done with only one function call. As well as that, the data structure used for the raw pixel data lends itself well to the chosen encoding method.
 
+## Target Platform
+
+This project was developed and tested on WSL Ubuntu.
+
 ## Possible Improvements
 
 - Extend the encoding specification to utilize the maximum number of pixels allowed by the PNG standard (2^31 - 1).
